@@ -19,6 +19,7 @@ amd64_memargs(int op)
 	.nfpr = NFPR, \
 	.rglob = BIT(RBP) | BIT(RSP), \
 	.nrglob = 2, \
+	.clrcall = 1, \
 	.rsave = amd64_sysv_rsave, \
 	.nrsave = {NGPS, NFPS}, \
 	.retregs = amd64_sysv_retregs, \

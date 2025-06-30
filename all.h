@@ -50,6 +50,7 @@ struct Target {
 	int nfpr;
 	bits rglob; /* globally live regs (e.g., sp, fp) */
 	int nrglob;
+	int clrcall; /* clear caller-saved on call */
 	int *rsave; /* caller-save */
 	int nrsave[2];
 	bits (*retregs)(Ref, int[2]);

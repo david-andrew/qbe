@@ -32,6 +32,7 @@ arm64_memargs(int op)
 	.nfpr = NFPR, \
 	.rglob = RGLOB, \
 	.nrglob = 4, \
+	.clrcall = 1, \
 	.rsave = arm64_rsave, \
 	.nrsave = {NGPS, NFPS}, \
 	.retregs = arm64_retregs, \

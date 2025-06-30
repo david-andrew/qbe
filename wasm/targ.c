@@ -33,6 +33,7 @@ Target T_wasm = {
 	.nfpr = NFPR,
 	.rglob = 0, /* No global registers like SP/FP */
 	.nrglob = 0,
+    .clrcall = 0, /*  */
 	.rsave = wasm_rsave,
 	.nrsave = {NGPR, NFPR},
 	.retregs = wasm_retregs,

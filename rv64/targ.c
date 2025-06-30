@@ -39,6 +39,7 @@ Target T_rv64 = {
 	.nfpr = NFPR,
 	.rglob = RGLOB,
 	.nrglob = 5,
+	.clrcall = 1,
 	.rsave = rv64_rsave,
 	.nrsave = {NGPS, NFPS},
 	.retregs = rv64_retregs,

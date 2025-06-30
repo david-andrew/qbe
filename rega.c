@@ -370,10 +370,12 @@ doblk(Blk *b, RMap *cur)
 		rf = -1;
 		switch (i->op) {
 		case Ocall:
-			rs = T.argregs(i->arg[1], 0) | T.rglob;
-			for (r=0; T.rsave[r]>=0; r++)
-				if (!(BIT(T.rsave[r]) & rs))
-					rfree(cur, T.rsave[r]);
+			if (T.clrcall) {
+				rs = T.argregs(i->arg[1], 0) | T.rglob;
+				for (r=0; T.rsave[r]>=0; r++)
+					if (!(BIT(T.rsave[r]) & rs))
+						rfree(cur, T.rsave[r]);
+			}
 			break;
 		case Ocopy:
 			if (regcpy(i)) {
