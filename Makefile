@@ -9,7 +9,8 @@ COMMOBJ  = main.o util.o parse.o abi.o cfg.o mem.o ssa.o alias.o load.o \
 AMD64OBJ = amd64/targ.o amd64/sysv.o amd64/isel.o amd64/emit.o
 ARM64OBJ = arm64/targ.o arm64/abi.o arm64/isel.o arm64/emit.o
 RV64OBJ  = rv64/targ.o rv64/abi.o rv64/isel.o rv64/emit.o
-OBJ      = $(COMMOBJ) $(AMD64OBJ) $(ARM64OBJ) $(RV64OBJ)
+WASMOBJ  = wasm/targ.o wasm/abi.o wasm/isel.o wasm/emit.o
+OBJ      = $(COMMOBJ) $(AMD64OBJ) $(ARM64OBJ) $(RV64OBJ) $(WASMOBJ)
 
 SRCALL   = $(OBJ:.o=.c)
 
@@ -26,6 +27,7 @@ $(OBJ): all.h ops.h
 $(AMD64OBJ): amd64/all.h
 $(ARM64OBJ): arm64/all.h
 $(RV64OBJ): rv64/all.h
+$(WASMOBJ): wasm/all.h
 main.o: config.h
 
 config.h:
@@ -47,6 +49,9 @@ config.h:
 			;;                             \
 		*riscv64*)                             \
 			echo "#define Deftgt T_rv64";  \
+			;;                             \
+		*wasm*)                                \
+			echo "#define Deftgt T_wasm";  \
 			;;                             \
 		*)                                     \
 			echo "#define Deftgt T_amd64_sysv";\
@@ -80,6 +85,9 @@ check-arm64: qbe
 check-rv64: qbe
 	TARGET=rv64 tools/test.sh all
 
+check-wasm: qbe
+	TARGET=wasm tools/test.sh all
+
 src:
 	@echo $(SRCALL)
 
@@ -96,4 +104,4 @@ src:
 wc:
 	@wc -l $(SRCALL)
 
-.PHONY: clean clean-gen check check-arm64 check-rv64 src 80 wc install uninstall
+.PHONY: clean clean-gen check check-arm64 check-rv64 check-wasm src 80 wc install uninstall
