@@ -9,7 +9,8 @@ COMMOBJ  = main.o util.o parse.o abi.o cfg.o mem.o ssa.o alias.o load.o \
 AMD64OBJ = amd64/targ.o amd64/sysv.o amd64/isel.o amd64/emit.o
 ARM64OBJ = arm64/targ.o arm64/abi.o arm64/isel.o arm64/emit.o
 RV64OBJ  = rv64/targ.o rv64/abi.o rv64/isel.o rv64/emit.o
-OBJ      = $(COMMOBJ) $(AMD64OBJ) $(ARM64OBJ) $(RV64OBJ)
+WASMOBJ  = wasm/targ.o wasm/abi.o wasm/isel.o wasm/emit.o
+OBJ      = $(COMMOBJ) $(AMD64OBJ) $(ARM64OBJ) $(RV64OBJ) $(WASMOBJ)
 
 SRCALL   = $(OBJ:.o=.c)
 
@@ -23,37 +24,12 @@ qbe: $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ): all.h ops.h
-$(AMD64OBJ): amd64/all.h
-$(ARM64OBJ): arm64/all.h
-$(RV64OBJ): rv64/all.h
+$(WASMOBJ): wasm/all.h
 main.o: config.h
 
 config.h:
-	@case `uname` in                               \
-	*Darwin*)                                      \
-		case `uname -m` in                     \
-		*arm64*)                               \
-			echo "#define Deftgt T_arm64_apple";\
-			;;                             \
-		*)                                     \
-			echo "#define Deftgt T_amd64_apple";\
-			;;                             \
-		esac                                   \
-		;;                                     \
-	*)                                             \
-		case `uname -m` in                     \
-		*aarch64*|*arm64*)                     \
-			echo "#define Deftgt T_arm64"; \
-			;;                             \
-		*riscv64*)                             \
-			echo "#define Deftgt T_rv64";  \
-			;;                             \
-		*)                                     \
-			echo "#define Deftgt T_amd64_sysv";\
-			;;                             \
-		esac                                   \
-		;;                                     \
-	esac > $@
+	@echo "#define Deftgt T_wasm" > $@
+	@echo "extern Target T_wasm;" >> $@
 
 install: qbe
 	mkdir -p "$(DESTDIR)$(BINDIR)"
@@ -77,8 +53,11 @@ check-x86_64: qbe
 check-arm64: qbe
 	TARGET=arm64 tools/test.sh all
 
-check-rv64: qbe
+check-rv64:
 	TARGET=rv64 tools/test.sh all
+
+check-wasm:
+	TARGET=wasm tools/test.sh all
 
 src:
 	@echo $(SRCALL)
@@ -88,8 +67,8 @@ src:
 	do                                         \
 		awk "{                             \
 			gsub(/\\t/, \"        \"); \
-			if (length(\$$0) > $@)     \
-				printf(\"$$F:%d: %s\\n\", NR, \$$0); \
+			if (length(\"$0) > $@)     \
+				printf(\"$$F:%d: %s\\n\", NR, \"$0); \
 		}" < $$F;                          \
 	done
 

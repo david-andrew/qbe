@@ -30,6 +30,7 @@ static Target *tlist[] = {
 	&T_arm64,
 	&T_arm64_apple,
 	&T_rv64,
+	&T_wasm,
 	0
 };
 static FILE *outf;
@@ -90,24 +91,24 @@ func(Fn *fn)
 	filllive(fn);
 	fillloop(fn);
 	fillcost(fn);
-	spill(fn);
-	rega(fn);
+	// spill(fn);
+	// rega(fn);
 	fillcfg(fn);
 	simpljmp(fn);
 	fillcfg(fn);
-	assert(fn->rpo[0] == fn->start);
-	for (n=0;; n++)
-		if (n == fn->nblk-1) {
-			fn->rpo[n]->link = 0;
-			break;
-		} else
-			fn->rpo[n]->link = fn->rpo[n+1];
+	// assert(fn->rpo[0] == fn->start);
+	// for (n=0;; n++)
+	// 	if (n == fn->nblk-1) {
+	// 		fn->rpo[n]->link = 0;
+	// 		break;
+	// 	} else
+	// 		fn->rpo[n]->link = fn->rpo[n+1];
 	if (!dbg) {
 		T.emitfn(fn, outf);
 		fprintf(outf, "/* end function %s */\n\n", fn->name);
 	} else
 		fprintf(stderr, "\n");
-	freeall();
+	// freeall();
 }
 
 static void

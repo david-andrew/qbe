@@ -4,3 +4,13 @@ config.h
 .comfile
 *.out
 *~
+
+
+# development stuff
+*.log
+*.nix
+*.html
+*.wat
+*.wasm
+.envrc
+.direnv

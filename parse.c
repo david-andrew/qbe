@@ -187,6 +187,7 @@ err(char *s, ...)
 static void
 lexinit()
 {
+	fprintf(stderr, "lexinit: entering lexinit function\n");
 	static int done;
 	int i;
 	long h;
@@ -340,34 +341,41 @@ Alpha:
 static int
 peek()
 {
+	fprintf(stderr, "peek: entering peek function\n");
 	if (thead == Txxx)
 		thead = lex();
+	fprintf(stderr, "peek: returning %d\n", thead);
 	return thead;
 }
 
 static int
 next()
 {
+	fprintf(stderr, "next: entering next function\n");
 	int t;
 
 	t = peek();
 	thead = Txxx;
+	fprintf(stderr, "next: returning %d\n", t);
 	return t;
 }
 
 static int
 nextnl()
 {
+	fprintf(stderr, "nextnl: entering nextnl function\n");
 	int t;
 
 	while ((t = next()) == Tnl)
 		;
+	fprintf(stderr, "nextnl: returning %d\n", t);
 	return t;
 }
 
 static void
 expect(int t)
 {
+	fprintf(stderr, "expect: entering expect function, expecting %d\n", t);
 	static char *ttoa[] = {
 		[Tlbl] = "label",
 		[Tcomma] = ",",
@@ -394,6 +402,7 @@ expect(int t)
 static Ref
 tmpref(char *v)
 {
+	fprintf(stderr, "tmpref: entering tmpref function for %s\n", v);
 	int t, i;
 
 	if (tmphcap/2 <= curf->ntmp-Tmp0) {
@@ -417,33 +426,41 @@ tmpref(char *v)
 	tmph[i] = t;
 	newtmp(0, Kx, curf);
 	strcpy(curf->tmp[t].name, v);
+	fprintf(stderr, "tmpref: returning TMP(%d) for %s\n", t, v);
 	return TMP(t);
 }
 
 static Ref
 parseref()
 {
+	fprintf(stderr, "parseref: entering parseref function\n");
 	Con c;
 
 	memset(&c, 0, sizeof c);
-	switch (next()) {
+	int token = next();
+	switch (token) {
 	default:
+		fprintf(stderr, "parseref: returning R (default case), token = %d\n", token);
 		return R;
 	case Ttmp:
+		fprintf(stderr, "parseref: Ttmp, tokval.str = %s\n", tokval.str);
 		return tmpref(tokval.str);
 	case Tint:
 		c.type = CBits;
 		c.bits.i = tokval.num;
+		fprintf(stderr, "parseref: Tint, tokval.num = %lld\n", tokval.num);
 		break;
 	case Tflts:
 		c.type = CBits;
 		c.bits.s = tokval.flts;
 		c.flt = 1;
+		fprintf(stderr, "parseref: Tflts, tokval.flts = %f\n", tokval.flts);
 		break;
 	case Tfltd:
 		c.type = CBits;
 		c.bits.d = tokval.fltd;
 		c.flt = 2;
+		fprintf(stderr, "parseref: Tfltd, tokval.fltd = %lf\n", tokval.fltd);
 		break;
 	case Tthread:
 		c.sym.type = SThr;
@@ -452,14 +469,18 @@ parseref()
 	case Tglo:
 		c.type = CAddr;
 		c.sym.id = intern(tokval.str);
+		fprintf(stderr, "parseref: Tglo/Tthread, tokval.str = %s\n", tokval.str);
 		break;
 	}
-	return newcon(&c, curf);
+	Ref new_con_ref = newcon(&c, curf);
+	fprintf(stderr, "parseref: returning newcon ref.type=%d, ref.val=%d\n", new_con_ref.type, new_con_ref.val);
+	return new_con_ref;
 }
 
 static int
 findtyp(int i)
 {
+	fprintf(stderr, "findtyp: entering findtyp function\n");
 	while (--i >= 0)
 		if (strcmp(tokval.str, typ[i].name) == 0)
 			return i;
@@ -469,7 +490,9 @@ findtyp(int i)
 static int
 parsecls(int *tyn)
 {
-	switch (next()) {
+	fprintf(stderr, "parsecls: entering parsecls function\n");
+	int token = next();
+	switch (token) {
 	default:
 		err("invalid class specifier");
 	case Ttyp:
@@ -497,6 +520,7 @@ parsecls(int *tyn)
 static int
 parserefl(int arg)
 {
+	fprintf(stderr, "parserefl: entering parserefl function, arg = %d\n", arg);
 	int k, ty, env, hasenv, vararg;
 	Ref r;
 
@@ -564,12 +588,14 @@ parserefl(int arg)
 		expect(Tcomma);
 	}
 	expect(Trparen);
+	fprintf(stderr, "parserefl: returning vararg = %d\n", vararg);
 	return vararg;
 }
 
 static Blk *
 findblk(char *name)
 {
+	fprintf(stderr, "findblk: entering findblk function for %s\n", name);
 	Blk *b;
 	uint32_t h;
 
@@ -582,20 +608,24 @@ findblk(char *name)
 	strcpy(b->name, name);
 	b->dlink = blkh[h];
 	blkh[h] = b;
+	fprintf(stderr, "findblk: returning new block %s (id=%d)\n", b->name, b->id);
 	return b;
 }
 
 static void
 closeblk()
 {
+	fprintf(stderr, "closeblk: entering closeblk function for %s\n", curb->name);
 	idup(curb, insb, curi-insb);
 	blink = &curb->link;
 	curi = insb;
+	fprintf(stderr, "closeblk: exiting closeblk function\n");
 }
 
 static PState
 parseline(PState ps)
 {
+	fprintf(stderr, "parseline: entering parseline function, ps = %d\n", ps);
 	Ref arg[NPred] = {R};
 	Blk *blk[NPred];
 	Phi *phi;
@@ -605,10 +635,12 @@ parseline(PState ps)
 	int t, op, i, k, ty;
 
 	t = nextnl();
+	fprintf(stderr, "parseline: first token = %d\n", t);
 	if (ps == PLbl && t != Tlbl && t != Trbrace)
 		err("label or } expected");
 	switch (t) {
 	case Ttmp:
+		fprintf(stderr, "parseline: Ttmp, tokval.str = %s\n", tokval.str);
 		r = tmpref(tokval.str);
 		expect(Teq);
 		k = parsecls(&ty);
@@ -627,8 +659,10 @@ parseline(PState ps)
 		}
 		err("label, instruction or jump expected");
 	case Trbrace:
+		fprintf(stderr, "parseline: Trbrace, returning PEnd\n");
 		return PEnd;
 	case Tlbl:
+		fprintf(stderr, "parseline: Tlbl, tokval.str = %s\n", tokval.str);
 		b = findblk(tokval.str);
 		if (curb && curb->jmp.type == Jxxx) {
 			closeblk();
@@ -641,8 +675,10 @@ parseline(PState ps)
 		curb = b;
 		plink = &curb->phi;
 		expect(Tnl);
+		fprintf(stderr, "parseline: returning PPhi\n");
 		return PPhi;
 	case Tret:
+		fprintf(stderr, "parseline: Tret\n");
 		curb->jmp.type = Jretw + rcls;
 		if (peek() == Tnl)
 			curb->jmp.type = Jret0;
@@ -654,9 +690,11 @@ parseline(PState ps)
 		}
 		goto Close;
 	case Tjmp:
+		fprintf(stderr, "parseline: Tjmp\n");
 		curb->jmp.type = Jjmp;
 		goto Jump;
 	case Tjnz:
+		fprintf(stderr, "parseline: Tjnz\n");
 		curb->jmp.type = Jjnz;
 		r = parseref();
 		if (req(r, R))
@@ -675,10 +713,12 @@ parseline(PState ps)
 			err("invalid jump to the start block");
 		goto Close;
 	case Thlt:
+		fprintf(stderr, "parseline: Thlt\n");
 		curb->jmp.type = Jhlt;
 	Close:
 		expect(Tnl);
 		closeblk();
+		fprintf(stderr, "parseline: returning PLbl\n");
 		return PLbl;
 	case Odbgloc:
 		op = t;
@@ -899,6 +939,7 @@ parsefn(Lnk *lnk)
 	int i;
 	PState ps;
 
+	fprintf(stderr, "parsefn: entering parsefn function\n");
 	curb = 0;
 	nblk = 0;
 	curi = insb;
@@ -926,6 +967,7 @@ parsefn(Lnk *lnk)
 	if (next() != Tglo)
 		err("function name expected");
 	strncpy(curf->name, tokval.str, NString-1);
+	fprintf(stderr, "parsefn: function name = %s\n", curf->name);
 	curf->vararg = parserefl(0);
 	if (nextnl() != Tlbrace)
 		err("function body must start with {");
@@ -947,6 +989,7 @@ parsefn(Lnk *lnk)
 		blkh[i] = 0;
 	memset(tmph, 0, tmphcap * sizeof tmph[0]);
 	typecheck(curf);
+	fprintf(stderr, "parsefn: exiting parsefn function\n");
 	return curf;
 }
 
@@ -1019,6 +1062,7 @@ parsefields(Field *fld, Typ *ty, int t)
 static void
 parsetyp()
 {
+	fprintf(stderr, "parsetyp: entering parsetyp function\n");
 	Typ *ty;
 	int t, al;
 	uint n;
@@ -1071,6 +1115,7 @@ parsetyp()
 	} else
 		parsefields(ty->fields[n++], ty, t);
 	ty->nunion = n;
+	fprintf(stderr, "parsetyp: exiting parsetyp function\n");
 }
 
 static void
@@ -1100,6 +1145,7 @@ parsedatstr(Dat *d)
 static void
 parsedat(void cb(Dat *), Lnk *lnk)
 {
+	fprintf(stderr, "parsedat: entering parsedat function\n");
 	char name[NString] = {0};
 	int t;
 	Dat d;
@@ -1165,11 +1211,13 @@ parsedat(void cb(Dat *), Lnk *lnk)
 Done:
 	d.type = DEnd;
 	cb(&d);
+	fprintf(stderr, "parsedat: exiting parsedat function\n");
 }
 
 static int
 parselnk(Lnk *lnk)
 {
+	fprintf(stderr, "parselnk: entering parselnk function\n");
 	int t, haslnk;
 
 	for (haslnk=0;; haslnk=1)
@@ -1199,6 +1247,7 @@ parselnk(Lnk *lnk)
 				err("only data may have thread linkage");
 			if (haslnk && t != Tdata && t != Tfunc)
 				err("only data and function have linkage");
+			fprintf(stderr, "parselnk: returning %d\n", t);
 			return t;
 		}
 }
@@ -1209,6 +1258,7 @@ parse(FILE *f, char *path, void dbgfile(char *), void data(Dat *), void func(Fn 
 	Lnk lnk;
 	uint n;
 
+	fprintf(stderr, "parse: entering parse function\n");
 	lexinit();
 	inf = f;
 	inpath = path;
@@ -1218,6 +1268,7 @@ parse(FILE *f, char *path, void dbgfile(char *), void data(Dat *), void func(Fn 
 	typ = vnew(0, sizeof typ[0], PHeap);
 	for (;;) {
 		lnk = (Lnk){0};
+		fprintf(stderr, "parse: calling parselnk\n");
 		switch (parselnk(&lnk)) {
 		default:
 			err("top-level definition expected");
@@ -1227,6 +1278,7 @@ parse(FILE *f, char *path, void dbgfile(char *), void data(Dat *), void func(Fn 
 			break;
 		case Tfunc:
 			lnk.align = 16;
+			fprintf(stderr, "parse: calling parsefn\n");
 			func(parsefn(&lnk));
 			break;
 		case Tdata:
@@ -1240,6 +1292,7 @@ parse(FILE *f, char *path, void dbgfile(char *), void data(Dat *), void func(Fn 
 				if (typ[n].nunion)
 					vfree(typ[n].fields);
 			vfree(typ);
+			fprintf(stderr, "parse: EOF reached, returning\n");
 			return;
 		}
 	}
@@ -1314,7 +1367,7 @@ printref(Ref r, Fn *fn, FILE *f)
 		if (!req(m->index, R)) {
 			if (i)
 				fprintf(f, " + ");
-			fprintf(f, "%d * ", m->scale);
+				fprintf(f, "%d * ", m->scale);
 			printref(m->index, fn, f);
 		}
 		fputc(']', f);
