@@ -231,6 +231,7 @@ struct Ins {
 	uint cls:2;
 	Ref to;
 	Ref arg[2];
+	char *s;
 };
 
 struct Phi {

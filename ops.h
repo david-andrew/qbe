@@ -135,6 +135,7 @@ O(copy,    T(w,l,s,d, x,x,x,x), F(0,0,0,0,0,0,0,0,0,0)) X(0,0,1) V(0)
 
 /* Debug */
 O(dbgloc,  T(w,e,e,e, w,e,e,e), F(0,0,0,0,0,0,0,0,0,1)) X(0,0,1) V(0)
+O(cmp,     T(w,l,s,d, w,l,s,d), F(0,0,0,0,0,0,0,0,0,0)) X(0,0,0) V(0)
 
 /****************************************/
 /* INTERNAL OPERATIONS (keep nop first) */
